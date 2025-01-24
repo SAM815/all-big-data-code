@@ -1,0 +1,66 @@
+import org.apache.spark.sql.SparkSession
+import org.apache.spark.ml.feature.VectorAssembler
+import org.apache.spark.ml.classification.LogisticRegression
+import org.apache.spark.sql.functions._
+import org.apache.spark.ml.linalg.Vectors
+import org.apache.spark.ml.feature.StringIndexer
+
+
+val spark = SparkSession.builder()
+  .appName("HeartDiseasePrediction")
+  .getOrCreate()
+
+
+val rawDataFrame = spark.read.format("csv")
+    .option("header", "false")
+    .option("inferSchema", "true")
+    .load("/input/input.txt")
+
+
+val noMissingValuesDF = rawDataFrame.na.fill(0)
+
+
+val numericColumnNames = Array("_c2", "_c3", "_c4", "_c5", "_c6", "_c7", "_c8", "_c9", "_c10", "_c11", "_c12", "_c13")
+val numericDF = numericColumnNames.foldLeft(noMissingValuesDF) { (tempDF, colName) =>
+    tempDF.withColumn(colName, when(col(colName) === "?", 0).otherwise(col(colName)).cast("double"))
+}
+
+
+val featureColumnNames = Array("_c2", "_c3", "_c4", "_c5", "_c6", "_c7", "_c9", "_c10", "_c11", "_c12", "_c13")
+
+
+val assembler = new VectorAssembler()
+    .setInputCols(featureColumnNames)
+    .setOutputCol("features")
+
+val featureDataFrame = assembler.transform(numericDF)
+
+
+val labelIndexer = new StringIndexer()
+    .setInputCol("_c8")  // Assuming "_c8" is the column with the target variable
+    .setOutputCol("label")
+
+val labeledData = labelIndexer.fit(featureDataFrame).transform(featureDataFrame)
+
+// Initialize and train the logistic regression model
+val logisticRegression = new LogisticRegression()
+val logisticModel = logisticRegression.fit(labeledData)
+
+
+// Question number 2 solution
+
+// Create test data for prediction
+val testFeatureData = Seq((65.0, 1.0, 4.0, 130.0, 275.0, 0.0, 1.0, 115.0, 1.0, 1.0, 2.0, 0.0))
+    .toDF("_c2", "_c3", "_c4", "_c5", "_c6", "_c7", "_c8", "_c9", "_c10", "_c11", "_c12", "_c13")
+
+val testFeaturesDF = assembler.transform(testFeatureData)
+
+// Predict using the trained logistic regression model
+val predictions = logisticModel.transform(testFeaturesDF)
+
+// Extract and print the prediction result
+val predictionValue = predictions.select("prediction").head().getDouble(0)
+println(s"Prediction: $predictionValue")
+
+// Stop the Spark session
+spark.stop()

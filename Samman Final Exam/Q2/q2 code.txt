@@ -1,0 +1,13 @@
+import sys
+from pyspark import SparkContext
+
+if __name__ == "__main__":
+    sc = SparkContext("local", "Pyspark maxprice")
+
+    data = sc.textFile("input/input2.txt")
+    filtered_data = data.map(lambda line: line.split(",")).map(lambda x: (x[2], float(x[25]) if x[25] != '?' else 0))
+
+    maximum_price_per_make = filtered_data.reduceByKey(max)
+    maximum_price_per_make.saveAsTextFile("output2b")
+
+    sc.stop()

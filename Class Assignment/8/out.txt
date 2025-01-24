@@ -1,0 +1,3 @@
+('Average radius of malignant tumors', [17.46283018867925])
+('Average radius of benign tumors', [12.14652380952381])
+('Number of patients diagnosed with malignant tumor', 212)

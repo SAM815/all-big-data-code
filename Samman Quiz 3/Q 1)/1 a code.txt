@@ -1,0 +1,74 @@
+import org.apache.spark.sql.SparkSession
+import org.apache.spark.ml.feature.{StringIndexer, VectorAssembler}
+import org.apache.spark.ml.classification.RandomForestClassifier
+import org.apache.spark.ml.evaluation.MulticlassClassificationEvaluator
+
+
+val sparkSession = SparkSession.builder().appName("RFModelPredictor").getOrCreate()
+
+
+val rawData = sparkSession.read.format("csv")
+  .option("header", true)  
+  .option("sep", ";")  
+  .option("inferSchema", true)  
+  .load("input/data.csv")  
+
+
+val targetIndexer = new StringIndexer()
+  .setInputCol("default")
+  .setOutputCol("targetLabel")
+
+val targetIndexedDF = targetIndexer.fit(rawData).transform(rawData)
+
+
+val professionIndexer = new StringIndexer()
+  .setInputCol("job")
+  .setOutputCol("professionIdx")
+
+val relationshipStatusIndexer = new StringIndexer()
+  .setInputCol("marital")
+  .setOutputCol("relationshipStatusIdx")
+
+val studyLevelIndexer = new StringIndexer()
+  .setInputCol("education")
+  .setOutputCol("studyLevelIdx")
+
+
+val jobTransformedDF = professionIndexer.fit(targetIndexedDF).transform(targetIndexedDF)
+val maritalTransformedDF = relationshipStatusIndexer.fit(jobTransformedDF).transform(jobTransformedDF)
+val educationTransformedDF = studyLevelIndexer.fit(maritalTransformedDF).transform(maritalTransformedDF)
+
+
+val featureAssembler = new VectorAssembler()
+  .setInputCols(Array("age", "professionIdx", "relationshipStatusIdx", "studyLevelIdx"))
+  .setOutputCol("featuresVector")
+
+val featureVectorDF = featureAssembler.transform(educationTransformedDF)
+
+
+val splitData = featureVectorDF.randomSplit(Array(0.7, 0.3))
+val trainingSet = splitData(0)
+val testingSet = splitData(1)
+
+
+val forestModel = new RandomForestClassifier()
+  .setFeaturesCol("featuresVector")
+  .setLabelCol("targetLabel")
+
+val trainedForestModel = forestModel.fit(trainingSet)
+
+
+val predictions = trainedForestModel.transform(testingSet)
+
+
+val modelEvaluator = new MulticlassClassificationEvaluator()
+  .setLabelCol("targetLabel")
+  .setPredictionCol("prediction")
+  .setMetricName("accuracy")
+
+val modelAccuracy = modelEvaluator.evaluate(predictions)
+val modelError = (1.0 - modelAccuracy) * 100
+println(s"Random Forest Model Prediction Error: $modelError%")
+
+
+sparkSession.stop()

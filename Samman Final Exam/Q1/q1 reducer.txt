@@ -1,0 +1,18 @@
+#!/usr/bin/env python
+import sys
+
+automobile_data = {}
+
+for line in sys.stdin:
+    line = line.strip()
+    make, price_string = line.split('\t')
+    price = float(price_string)
+
+    if make in automobile_data:
+        automobile_data[make][0] += price
+        automobile_data[make][1] += 1
+    else:
+        automobile_data[make] = [price, 1]
+
+for make in automobile_data:
+    avg_price = automobile_data[make][0] / automobile_data[make][1]

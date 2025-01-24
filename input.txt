@@ -1,0 +1,49 @@
+input.txt
+==============
+JAN 50
+FEB 56
+JAN 55
+FEB 58
+JAN 47
+MAR 63
+FEB 51
+MAR 73
+==============
+mapper.py
+==============
+#!/usr/bin/env python
+
+import sys
+
+for line in sys.stdin:
+	val = line.strip()
+	month,temp = val.split()
+	print('%s\t%s' % (month,temp))
+	
+===============
+#!/usr/bin/env python
+
+import sys
+
+maxTemp = {}
+
+for line in sys.stdin:
+	line = line.strip()
+	key,val = line.split("\t")
+	val = float (val)
+	
+	try:
+		if val> maxTemp[key]:
+			maxTemp[key] = val
+		else:
+			continue
+			
+	except:
+		maxTemp[key] = val
+		
+for key in maxTemp.keys():
+	print("%s\t%s" % (key, maxTemp[key]))
+	
+================
+
+write map reduce code to find the average temperature for each month (example: Jan)

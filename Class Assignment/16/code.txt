@@ -1,0 +1,7 @@
+A = LOAD 'input.txt' USING PigStorage(',') AS (month:chararray, temperature:int);
+
+B = GROUP A BY month;
+
+C = FOREACH B GENERATE group AS month, AVG(A.temperature) AS average_temperature;
+
+DUMP C;

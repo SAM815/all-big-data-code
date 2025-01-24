@@ -1,0 +1,245 @@
+=======
+first thing we will do is learn to group the movies seen by a user
+here we will group the movies seen by a user, the movie_id, and the user_rating
+==================
+
+import sys
+from pyspark import SparkContext, SparkConf
+
+if __name__ == "__main__":
+
+	#initialize the spark context
+	conf = SparkConf().setAppName("GroupMoviesByUser").setMaster("local")
+	sc = SparkContext(conf=conf)
+	
+	#load the data into a text file
+	data = sc.textFile("input/input.txt")
+	
+	#split each line of inpout data by a coma
+	users = data.map(lambda line: line.split(","))
+	
+	#create tuples of (user_id, (movie_id, rating))
+	user_movie_rating = users.map(lambda x: (x[0], (x[1], int(x[2]))))
+	
+	# Group movies by user ID
+	movies_by_user = user_movie_rating.groupByKey()
+	
+	#Output each user's movies
+	formatted_output = movies_by_user.flatMap(lambda x: [(x[0], movie_rating) for movie_rating in x[1]])
+	
+	#save formatted string to a folder called output
+	formatted_output.saveAsTextFile("output")
+	
+	sc.stop()
+	
+	
+===Output
+('user_9', ('movie_27', 5))
+('user_9', ('movie_1', 4))
+('user_9', ('movie_24', 1))
+('user_18', ('movie_18', 5))
+('user_18', ('movie_7', 4))
+('user_18', ('movie_13', 3))
+('user_18', ('movie_21', 2))
+('user_18', ('movie_6', 1))
+('user_18', ('movie_28', 1))
+('user_18', ('movie_10', 1))
+('user_18', ('movie_10', 3))
+('user_4', ('movie_5', 3))
+('user_4', ('movie_22', 5))
+('user_4', ('movie_24', 1))
+('user_13', ('movie_3', 3))
+('user_13', ('movie_6', 2))
+('user_13', ('movie_6', 4))
+('user_13', ('movie_11', 4))
+('user_13', ('movie_23', 3))
+('user_13', ('movie_13', 2))
+('user_13', ('movie_10', 4))
+('user_13', ('movie_9', 1))
+('user_20', ('movie_19', 3))
+('user_20', ('movie_12', 5))
+('user_20', ('movie_18', 5))
+('user_20', ('movie_25', 2))
+('user_19', ('movie_21', 2))
+('user_19', ('movie_16', 3))
+('user_19', ('movie_17', 1))
+('user_19', ('movie_12', 1))
+('user_15', ('movie_26', 3))
+('user_15', ('movie_2', 1))
+('user_15', ('movie_6', 1))
+('user_15', ('movie_29', 1))
+('user_15', ('movie_12', 4))
+('user_15', ('movie_22', 2))
+('user_15', ('movie_2', 1))
+('user_15', ('movie_28', 1))
+('user_15', ('movie_18', 5))
+('user_12', ('movie_13', 4))
+('user_12', ('movie_2', 3))
+('user_12', ('movie_16', 1))
+('user_12', ('movie_19', 5))
+('user_12', ('movie_18', 1))
+('user_12', ('movie_22', 2))
+('user_12', ('movie_26', 3))
+('user_6', ('movie_12', 2))
+('user_6', ('movie_21', 4))
+('user_6', ('movie_25', 1))
+('user_6', ('movie_26', 1))
+('user_6', ('movie_7', 5))
+('user_6', ('movie_9', 5))
+('user_7', ('movie_27', 4))
+('user_7', ('movie_13', 4))
+('user_7', ('movie_12', 5))
+('user_7', ('movie_15', 5))
+('user_7', ('movie_22', 3))
+('user_7', ('movie_9', 5))
+('user_7', ('movie_21', 1))
+('user_7', ('movie_15', 4))
+('user_5', ('movie_15', 3))
+('user_5', ('movie_3', 5))
+('user_5', ('movie_21', 5))
+('user_5', ('movie_4', 1))
+('user_5', ('movie_10', 4))
+('user_5', ('movie_24', 2))
+('user_16', ('movie_9', 1))
+('user_16', ('movie_4', 1))
+('user_16', ('movie_16', 5))
+('user_16', ('movie_15', 2))
+('user_16', ('movie_21', 3))
+('user_16', ('movie_10', 5))
+('user_16', ('movie_2', 3))
+('user_16', ('movie_2', 3))
+('user_16', ('movie_16', 3))
+('user_14', ('movie_23', 5))
+('user_14', ('movie_16', 2))
+('user_14', ('movie_20', 5))
+('user_14', ('movie_7', 5))
+('user_3', ('movie_23', 5))
+('user_3', ('movie_20', 5))
+('user_3', ('movie_14', 4))
+('user_3', ('movie_2', 3))
+('user_3', ('movie_27', 3))
+('user_3', ('movie_17', 2))
+('user_10', ('movie_21', 5))
+('user_10', ('movie_13', 5))
+('user_10', ('movie_28', 3))
+('user_8', ('movie_30', 3))
+('user_8', ('movie_2', 4))
+('user_8', ('movie_22', 2))
+('user_8', ('movie_4', 5))
+('user_2', ('movie_28', 2))
+('user_2', ('movie_22', 4))
+('user_2', ('movie_6', 5))
+('user_2', ('movie_2', 4))
+('user_11', ('movie_21', 4))
+('user_11', ('movie_3', 1))
+('user_1', ('movie_20', 3))
+('user_17', ('movie_30', 4))
+
+
+============================================================================
+create a list of high rated movies
+====================================================================
+
+import sys
+from pyspark import SparkContext, SparkConf
+
+if __name__ == "__main__":
+    # Initialize Spark context
+    conf = SparkConf().setAppName("FilterHighRatedMovies").setMaster("local")
+    sc = SparkContext(conf=conf)
+    
+    # Load data into a text file
+    data = sc.textFile("input/input.txt")
+    
+    # Split each line of the input data by comma
+    users = data.map(lambda line: line.split(","))
+    
+    # Create tuples of (user_id, (movie_id, rating))
+    user_movie_rating = users.map(lambda x: (x[0], (x[1], int(x[2]))))
+    
+    # Group movies by user ID
+    movies_by_user = user_movie_rating.groupByKey()
+    
+    # Output each user's movies
+    formatted_output = movies_by_user.flatMap(lambda x: [(x[0], movie_rating) for movie_rating in x[1]])
+    
+    # Filter movies with ratings greater than 2
+    high_rated_movies = formatted_output.filter(lambda x: x[1][1] > 2)
+    
+    # Get a list of high-rated movies
+    list_of_high_rated_movies = high_rated_movies.map(lambda x: x[1][0]).collect()
+	
+	#remove all the duplicates
+    
+	
+	# Only user and movies which will be later used.
+    only_user_and_movies = formatted_output.map(lambda x: (x[0], [movie[0] for movie in x[1]]))
+    
+    # Compare the movies that the user has watched to the list of liked movies
+    # and store the movies that the user has not watched
+    recommended_movies_by_user = only_user_and_movies.mapValues(lambda movies: list(set(list_of_liked_movies) - set(movies)))
+    # Collect the results
+    result_list = recommended_movies_by_user.collect()
+
+    # Loop through the list and print each element
+    for user, recommended_movies in result_list:
+        print(f"User: {user}, Recommended Movies: {recommended_movies}")
+    
+    # Stop SparkContext
+    sc.stop()
+	
+	
+this is the output
+List of high-rated movies: ['movie_27', 'movie_1', 'movie_18', 'movie_7', 'movie_13', 'movie_10', 'movie_5', 'movie_22', 'movie_3', 'movie_6', 'movie_11', 'movie_23', 'movie_10', 'movie_19', 'movie_12', 'movie_18', 'movie_16', 'movie_26', 'movie_12', 'movie_18', 'movie_13', 'movie_2', 'movie_19', 'movie_26', 'movie_21', 'movie_7', 'movie_9', 'movie_27', 'movie_13', 'movie_12', 'movie_15', 'movie_22', 'movie_9', 'movie_15', 'movie_15', 'movie_3', 'movie_21', 'movie_10', 'movie_16', 'movie_21', 'movie_10', 'movie_2', 'movie_2', 'movie_16', 'movie_23', 'movie_20', 'movie_7', 'movie_23', 'movie_20', 'movie_14', 'movie_2', 'movie_27', 'movie_21', 'movie_13', 'movie_28', 'movie_30', 'movie_2', 'movie_4', 'movie_22', 'movie_6', 'movie_2', 'movie_21', 'movie_20', 'movie_30']
+
+=============================================================
+
+===============================================================
+
+import sys
+from pyspark import SparkContext, SparkConf
+
+if __name__ == "__main__":
+    # Initialize Spark context
+    conf = SparkConf().setAppName("FilteredMoviesPerUser").setMaster("local")
+    sc = SparkContext(conf=conf)
+    
+    # Load data into a text file
+    data = sc.textFile("input/input.txt")
+    
+    # Split each line of the input data by comma
+    users = data.map(lambda line: line.split(","))
+    
+    # Create tuples of (user, movie, rating) from input data
+    user_movie_rating = users.map(lambda x: (x[0], (x[1], int(x[2]))))
+    
+    # Group movies by user ID
+    movies_by_user = user_movie_rating.groupByKey()
+    
+    # Filter movies with ratings more than 2 for each user
+    filtered_movies_by_user = movies_by_user.mapValues(lambda movies: [(movie, rating) for movie, rating in movies if rating > 2])
+    
+    # Format the output as (user, [(movie, rating), ...])
+    # all movies that users liked
+    formatted_output = filtered_movies_by_user.map(lambda x: (x[0], list(x[1])))
+    
+    # Create a list of liked movies
+    list_of_liked_movies = formatted_output.flatMap(lambda x: [(movie[0], 1) for movie in x[1]]) \
+                                            .reduceByKey(lambda a, b: a) \
+                                            .map(lambda x: x[0]) \
+                                            .collect()
+    
+    # Only user and movies which will be later used.
+    only_user_and_movies = formatted_output.map(lambda x: (x[0], [movie[0] for movie in x[1]]))
+    
+    # Compare the movies that the user has watched to the list of liked movies
+    # and store the movies that the user has not watched
+    recommended_movies_by_user = only_user_and_movies.mapValues(lambda movies: list(set(list_of_liked_movies) - set(movies)))
+    
+    # Collect the results
+    result_list = recommended_movies_by_user.collect()
+
+    sc.parallelize(result_list).saveAsTextFile("output")
+    
+    # Stop SparkContext
+    sc.stop()

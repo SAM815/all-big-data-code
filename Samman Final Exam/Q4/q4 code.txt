@@ -1,0 +1,23 @@
+from pyspark import SparkContext, SparkConf
+
+if __name__ == "__main__":
+    
+    conf = SparkConf().setAppName("HighestSpokenLanguageByCountries")
+    sc = SparkContext(conf=conf)
+    
+  
+    data = sc.textFile("input/input4.txt")
+    
+    continent_language = data.map(lambda line: line.split(",")).map(lambda x: ((x[1], x[5]), 1))
+    
+    continent_language_counts = continent_language.reduceByKey(lambda a, b: a + b)
+    
+    continent_max_language = continent_language_counts.map(lambda x: (x[0][0], (x[0][1], x[1])))
+
+    result = continent_max_language.reduceByKey(lambda x, y: x if x[1] > y[1] else y)
+    
+   
+    result.saveAsTextFile("output")
+    
+  
+    sc.stop()

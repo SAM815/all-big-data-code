@@ -1,0 +1,11 @@
+import sys
+
+from pyspark import SparkContext, SparkConf
+
+if __name__ == "__main__":
+	sc = SparkContext("local","Q2")
+	data = sc.textFile("input/input.txt").map(lambda line: line.split(","))
+	data = data.map(lambda x: ((x[1], x[5]), (int(x[4])))).reduceByKey(lambda x,y: x+y )
+	finaldata = data.map(lambda x: (x[0][0], (x[0][1], x[1]))).reduceByKey(lambda x, y: x if x[1]>y[1] else y)
+
+	finaldata.saveAsTextFile("output")

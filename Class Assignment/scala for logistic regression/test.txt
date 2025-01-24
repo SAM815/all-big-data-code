@@ -1,0 +1,39 @@
+import org.apache.spark.sql.SparkSession
+import org.apache.spark.ml.feature.VectorAssembler
+import org.apache.spark.ml.classification.LogisticRegression
+import org.apache.spark.sql.types.DoubleType
+import org.apache.spark.sql.Row
+
+val spark = SparkSession.builder().appName("Logistic Regression Example").getOrCreate()
+
+val df = spark.read.format("csv")
+    .option("header", "true")
+    .option("inferSchema", "true")
+    .load("input/input.txt")
+
+val assembler = new VectorAssembler()
+    .setInputCols(Array("Feature 1", "Feature 2"))
+    .setOutputCol("features")
+
+val df3 = assembler.transform(df)
+    .withColumn("label", $"Label".cast(DoubleType))
+    .select("label", "features")
+
+val lr = new LogisticRegression()
+  .setMaxIter(10)
+  .setRegParam(0.3)
+  .setElasticNetParam(0.8)
+
+val lrModel = lr.fit(df3)
+
+val testData = Seq((7.0, 9.0)).toDF("Feature 1", "Feature 2")
+val testAssembler = new VectorAssembler()
+    .setInputCols(Array("Feature 1", "Feature 2"))
+    .setOutputCol("features")
+
+val testdataWithFeatures = testAssembler.transform(testData) 
+
+val predictions = lrModel.transform(testdataWithFeatures)
+predictions.select("features", "prediction").show()
+
+spark.stop()

@@ -1,0 +1,32 @@
+from pyspark import SparkContext, SparkConf
+
+if __name__ == "__main__":
+    conf = SparkConf().setAppName("GenderAgeCount").setMaster("local")
+    sc = SparkContext(conf=conf)
+
+    # Read the input file
+    data = sc.textFile("/input/input.txt")
+
+    # Filter out the header and split each line by comma
+    filtered_data = data.filter(lambda line: not line.startswith("Age")).map(lambda line: line.split(','))
+
+    # Map each record to (Gender, Age) tuple
+    gender_age = filtered_data.map(lambda record: (int(record[1]), int(record[0])))
+
+    # Filter males in age group 40 to 71 and females in age group 30 to 60
+    males_40_to_71 = gender_age.filter(lambda x: x[0] == 0 and 40 <= x[1] <= 71)
+    females_30_to_60 = gender_age.filter(lambda x: x[0] == 1 and 30 <= x[1] <= 60)
+
+    # Count the number of males and females in the specified age groups
+    num_males = males_40_to_71.count()
+    num_females = females_30_to_60.count()
+
+    # Combine results into a single RDD
+    combined_results = sc.parallelize([("Number of males in age group 40 to 71:", num_males),
+                                       ("Number of females in age group 30 to 60:", num_females)])
+
+    # Save the combined results to a single output file
+    combined_results.coalesce(1).saveAsTextFile("output")
+
+    # Stop SparkContext
+    sc.stop()

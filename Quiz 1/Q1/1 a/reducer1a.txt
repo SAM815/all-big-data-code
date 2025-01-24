@@ -1,0 +1,36 @@
+#!/usr/bin/env python3
+
+import sys
+
+# Dictionary to store the count of each number
+numcount = {}
+
+# Iterate over each key-value pair from the mapper
+for line in sys.stdin:
+    line = line.strip()
+    num, value = line.split(' ')
+
+    # Convert value to integer
+    try:
+        value = int(value)
+    except ValueError:
+        continue
+
+    # Count occurrences of each number
+    try:
+        numcount[num] += 1
+    except KeyError:
+        numcount[num] = 1
+
+# Find the number with the highest occurrence
+max_num = None
+max_occurrence = 0
+for num, occurrence in numcount.items():
+    if occurrence > max_occurrence:
+        max_num = num
+        max_occurrence = occurrence
+
+# Output the number with the highest occurrence
+if max_num is not None:
+    print("Number with the highest occurrence:", max_num)
+    print("Occurrences:", max_occurrence)

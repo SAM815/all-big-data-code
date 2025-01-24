@@ -1,0 +1,17 @@
+import sys
+from pyspark import SparkContext, SparkConf
+
+if __name__ == "__main__":
+    # Initialize Spark context
+    conf = SparkConf().setAppName("HighestRatedMoviePerUser").setMaster("local")
+    sc = SparkContext(conf=conf)
+    data = sc.textFile("/input/input.txt")
+    movie_ratings = data.map(lambda line: line.split(","))
+    user_movie_rating = movie_ratings.map(lambda record: (record[1], (record[0], float(record[2]))))
+
+    # Find the highest-rated movie per user
+    highest_rated_movie_per_user = user_movie_rating.reduceByKey(lambda a, b: a if a[1] > b[1] else b)
+    highest_rated_movie_per_user.saveAsTextFile("output_highest_rated_movie_per_user")
+
+    # Stop SparkContext
+    sc.stop()

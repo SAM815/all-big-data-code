@@ -1,0 +1,48 @@
+import sys
+from pyspark import SparkContext, SparkConf
+
+if __name__ == "__main__":
+    # Initialize Spark context
+    conf = SparkConf().setAppName("FilteredMoviesPerUser").setMaster("local")
+    sc = SparkContext(conf=conf)
+    
+    # Load data into a text file
+    input_data = sc.textFile("input/input.txt")
+    
+    # Split each line of the input data by comma
+    user_data = input_data.map(lambda line: line.split(","))
+    
+    # Create tuples of (user_id, (movie_id, rating)) from input data
+    user_movie_rating = user_data.map(lambda x: (x[0], (x[1], int(x[2]))))
+    
+    # Group movies by user ID
+    movies_grouped = user_movie_rating.groupByKey()
+    
+    # Filter movies with ratings more than 2 for each user
+    filtered_movies = movies_grouped.mapValues(lambda movies: [(movie, rating) for movie, rating in movies if rating > 2])
+    
+    # Format the output as (user_id, [(movie_id, rating), ...])
+    # all movies that users liked
+    formatted_output = filtered_movies.map(lambda x: (x[0], list(x[1])))
+    
+    # Create a list of liked movies
+    liked_movies_list = formatted_output.flatMap(lambda x: [(movie[0], 1) for movie in x[1]]) \
+                                        .reduceByKey(lambda a, b: a) \
+                                        .map(lambda x: x[0]) \
+                                        .collect()
+    
+    # Only user_id and movies which will be later used.
+    user_movies = formatted_output.map(lambda x: (x[0], [movie[0] for movie in x[1]]))
+    
+    # Compare the movies that the user has watched to the list of liked movies
+    # and store the movies that the user has not watched
+    recommended_movies = user_movies.mapValues(lambda movies: list(set(liked_movies_list) - set(movies)))
+    
+    # Collect the results
+    result_list = recommended_movies.collect()
+
+    # Save the result as text files
+    sc.parallelize(result_list).saveAsTextFile("output")
+    
+    # Stop SparkContext
+    sc.stop()

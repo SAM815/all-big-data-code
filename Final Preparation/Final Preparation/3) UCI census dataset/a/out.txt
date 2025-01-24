@@ -1,0 +1,3 @@
+(' Bachelors', 2221)
+(' HS-grad', 1675)
+(' Masters', 959)

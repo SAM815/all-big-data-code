@@ -1,0 +1,28 @@
+import org.apache.spark.mllib.linalg._
+import org.apache.spark.mllib.regression._
+import org.apache.spark.mllib.evaluation._
+import org.apache.spark.mllib.rdd._
+import org.apache.spark.mllib.clustering._
+import org.apache.spark.mllib.tree._
+import org.apache.spark.mllib.tree.model._
+
+val text = sc.textFile("/input/imp.data")
+
+val data = text.map{ x =>
+
+				val line = x.split(",").slice(22,26).map{case "?" => 0; case z => z.toDouble}
+				val featurevec = Vectors.dense(line.init)
+				val label = line.last
+				LabeledPoint(label, featurevec)
+
+}
+
+val catfeat = Map[Int, Int] ()
+
+val model = DecisionTree.trainRegressor(data, catfeat, impurity="variance", maxDepth=5, maxBins=32)
+
+val testData = Vectors.dense(5000, 21, 27)
+
+val prediction = model.predict(testData)
+
+println("Prediction: $" + prediction)

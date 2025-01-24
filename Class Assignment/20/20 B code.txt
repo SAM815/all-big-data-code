@@ -1,0 +1,10 @@
+
+A = LOAD 'input.txt' USING PigStorage(',') AS (id:int, name:chararray, age:int, weight:int);
+
+maximum_weight = FOREACH (GROUP A ALL) GENERATE MAX(A.weight) as maximum_weight;
+
+maximum_weight_person = FILTER A BY weight == maximum_weight.maximum_weight;
+
+maximum_weight_person_id_name_and_age = FOREACH maximum_weight_person GENERATE id, name, age;
+
+DUMP maximum_weight_person_id_name_and_age;

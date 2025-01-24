@@ -1,0 +1,11 @@
+val textFile = sc.textFile("input/input.txt")
+
+val tokens = textFile.map(line => line.split(","))
+
+val keyValuePairs = tokens.map(token => (token(1), (token(0), token(4).toDouble)))
+
+val maxPopulationByCountry = keyValuePairs.reduceByKey {
+  case ((name1, pop1), (name2, pop2)) => if (pop1 > pop2) (name1, pop1) else (name2, pop2)
+}
+
+maxPopulationByCountry.collect.foreach(println)

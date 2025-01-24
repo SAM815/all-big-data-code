@@ -1,0 +1,26 @@
+
+import sys
+from pyspark import SparkContext, SparkConf
+
+if __name__ == "__main__":
+    # Initialize Spark context
+    conf = SparkConf().setAppName("HighestNumberOccurrence").setMaster("local")
+    sc = SparkContext(conf=conf)
+
+  
+    data = sc.textFile("/input/input.txt")
+
+    
+    numbers = data.flatMap(lambda line: line.split(","))
+
+    
+    number_counts = numbers.map(lambda number: (int(number), 1)).reduceByKey(lambda a, b: a + b)
+
+    # Find the number with the highest occurrence
+    max_number = number_counts.reduce(lambda a, b: a if a[1] > b[1] else b)
+
+    
+    sc.parallelize([max_number]).saveAsTextFile("output")
+
+    # Stop SparkContext
+    sc.stop()

@@ -1,0 +1,9 @@
+import sys
+
+from pyspark import SparkContext, SparkConf
+
+if __name__ == "__main__":
+	sc = SparkContext("local","Q1")
+	data = sc.textFile("input/input.txt").map(lambda line: line.split(","))
+	count = data.map(lambda x: (x[5], float(4))).reduceByKey(lambda a,b: a+b)
+	count.saveAsTextFile("output")

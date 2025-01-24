@@ -1,0 +1,17 @@
+val textFile = sc.textFile("input/input.txt")
+val data_values = textFile.map(line => line.split(","))
+
+// Assuming that data_value(1) is the landmass and data_value(0) is the country name, data_value(4) is the population
+val key_Value_Pairs = data_values.map(data_value => (data_value(1), (data_value(0), data_value(4).toInt)))
+
+// Reduce by key to find the country with the maximum population per landmass
+val max_Population = key_Value_Pairs.reduceByKey {
+  case ((name1, pop1), (name2, pop2)) =>
+    if (pop1 > pop2) (name1, pop1) else (name2, pop2)
+}
+
+// Collect and print the results
+max_Population.collect.foreach {
+  case (landmass, (name, population)) =>
+    println(s"Landmass $landmass: $name with population $population")
+}

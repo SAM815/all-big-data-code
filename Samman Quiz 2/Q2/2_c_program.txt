@@ -1,0 +1,22 @@
+import sys
+from pyspark import SparkContext, SparkConf
+
+if __name__ == "__main__":
+    # Initialize Spark context
+    conf = SparkConf().setAppName("AverageRatingPerMovie").setMaster("local")
+    sc = SparkContext(conf=conf)
+    data = sc.textFile("/input/input.txt")
+    movie_ratings = data.map(lambda line: line.split(","))
+    movie_rating = movie_ratings.map(lambda record: (record[0], float(record[2])))
+
+    # Calculate the total rating and count per movie
+    movie_total_rating_count = movie_rating.aggregateByKey((0, 0), 
+                                                            lambda acc, value: (acc[0] + value, acc[1] + 1), 
+                                                            lambda acc1, acc2: (acc1[0] + acc2[0], acc1[1] + acc2[1]))
+
+    # Calculate the average rating per movie
+    movie_avg_rating = movie_total_rating_count.mapValues(lambda x: x[0] / x[1])
+    movie_avg_rating.saveAsTextFile("output")
+
+    # Stop SparkContext
+    sc.stop()

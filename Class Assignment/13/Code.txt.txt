@@ -1,0 +1,22 @@
+import org.apache.spark.mllib.linalg._
+import org.apache.spark.mllib.regression._
+import org.apache.spark.mllib.evaluation._
+import org.apache.spark.mllib.rdd._
+import org.apache.spark.mllib.clustering._
+import org.apache.spark.mllib.tree._
+import org.apache.spark.mllib.tree.model._
+
+val text = sc.textFile("input/input.txt")
+val records = text.map(line => line.split(","))
+
+val line = records.map(x => (x(2), x(3), x(4), x(5)))
+val parsedData = line.map(line => Vectors.dense(line._1.toDouble, line._2.toDouble,line._3.toDouble, line._4.toDouble))
+val kmeans = new KMeans()
+kmeans.setK(2)
+val model = kmeans.run(parsedData) 
+
+model.clusterCenters.foreach(println)
+//model.predict(parsedData).foreach(println)
+val clusterNum_1 = model.predict(Vectors.dense(17.99, 10.38,122.8,1001))
+val clusterNum_2 = model.predict(Vectors.dense(20.57, 17.77, 132.9, 1326))
+println(clusterNum_1, clusterNum_2)

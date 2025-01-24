@@ -1,0 +1,9 @@
+A = LOAD 'input.txt' USING PigStorage(',') AS (id:int, name:chararray, age:int, weight:int);
+
+maximum_age = FOREACH (GROUP A ALL) GENERATE MAX(A.age) as maximum_age;
+
+oldest_person = FILTER A BY age == maximum_age.maximum_age;
+
+oldperson_id_and_name = FOREACH oldest_person GENERATE id, name;
+
+DUMP oldperson_id_and_name;

@@ -1,0 +1,4 @@
+Number with the highest occurrence: 0
+Occurrences: 11
+Number with the highest occurrence: 1
+Occurrences: 13

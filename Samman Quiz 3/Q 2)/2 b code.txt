@@ -1,0 +1,21 @@
+val textFile = sc.textFile("input/input.txt")
+val data_values = textFile.map(line => line.split(","))
+
+
+val keyValuePair = data_values.map(data_value => ((data_value(1), data_value(5)), data_value(4).toInt))
+
+
+val summedPopulationByLandmassAndLanguage = keyValuePair.reduceByKey(_ + _)
+
+
+val landmassToLanguagePop = summedPopulationByLandmassAndLanguage.map {
+  case ((landmass, language), population) => (landmass, (language, population))
+}
+
+
+val maxLanguageByLandmass = landmassToLanguagePop.reduceByKey((x, y) => if (x._2 > y._2) x else y)
+
+maxLanguageByLandmass.collect.foreach {
+  case (landmass, (language, population)) =>
+    println(s"Landmass $landmass: Language $language with population $population")
+}

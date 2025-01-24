@@ -1,0 +1,2 @@
+('Number of males in age group 40 to 71:', 4)
+('Number of females in age group 30 to 60:', 4)

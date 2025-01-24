@@ -1,0 +1,6 @@
+S.America       Spanish
+Asia    Others
+Europe  other Indo-European
+Oceania English
+N.America       English
+Africa  Others

@@ -1,0 +1,6 @@
+(5, ('Chinese', 1034))
+(3, ('Other Indo-European', 166))
+(4, ('Others', 234))
+(6, ('Others', 205))
+(1, ('English', 257))
+(2, ('Spanish', 146))

@@ -1,0 +1,16 @@
+import sys
+from pyspark import SparkContext, SparkConf
+
+if __name__ == "__main__":
+    # Initialize Spark context
+    conf = SparkConf().setAppName("NumberOccurrences").setMaster("local")
+    sc = SparkContext(conf=conf)
+    data = sc.textFile("/input/input.txt")
+    numbers = data.flatMap(lambda line: line.split(","))
+    number_counts = numbers.map(lambda number: (int(number), 1)).reduceByKey(lambda a, b: a + b)
+    count_0 = number_counts.filter(lambda x: x[0] == 0).map(lambda x: x[1]).reduce(lambda a, b: a + b)
+    count_1 = number_counts.filter(lambda x: x[0] == 1).map(lambda x: x[1]).reduce(lambda a, b: a + b)
+    sc.parallelize([(0, count_0), (1, count_1)]).saveAsTextFile("output")
+
+    # Stop SparkContext
+    sc.stop()

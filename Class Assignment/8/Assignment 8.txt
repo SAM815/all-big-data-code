@@ -1,0 +1,39 @@
+from pyspark import SparkContext, SparkConf
+
+if __name__ == "__main__":
+    # Set Spark configuration
+    spark_configuration = SparkConf().setAppName("ModifiedAnalysis").setMaster("local")
+    spark_context = SparkContext(conf=spark_configuration)
+
+    # Read input data
+    input_data = spark_context.textFile("/input/input.txt")
+
+    # Filter out lines with incorrect number of fields
+    filtered_data = input_data.filter(lambda line: len(line.split(",")) == 32)
+
+    # Map tumor radius data
+    tumor_data = filtered_data.map(lambda line: line.split(",")).map(lambda x: (x[1], float(x[2])))
+
+    # Calculate sum and count of tumor radius for each tumor type
+    tumor_sum_count = tumor_data.combineByKey(lambda value: (value, 1),
+                                               lambda x, value: (x[0] + value, x[1] + 1),
+                                               lambda x, y: (x[0] + y[0], x[1] + y[1]))
+
+    # Calculate average radius for each tumor type
+    average_radius = tumor_sum_count.map(lambda x: (x[0], x[1][0] / x[1][1]))
+
+    # Count malignant tumors
+    malignant_count = tumor_data.filter(lambda x: x[0] == 'M').count()
+
+    # Combine results
+    combined_data = spark_context.parallelize([
+        ("Average radius of malignant tumors", average_radius.lookup('M')),
+        ("Average radius of benign tumors", average_radius.lookup('B')),
+        ("Number of patients diagnosed with malignant tumor", malignant_count)
+    ])
+
+    # Save results to output directory
+    combined_data.saveAsTextFile("output")
+
+    # Stop SparkContext
+    spark_context.stop()

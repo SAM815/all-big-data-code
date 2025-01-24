@@ -1,0 +1,10 @@
+val textFile = sc.textFile("input/input.txt")
+val data_values = textFile.map(line => line.split(","))
+val keyValuePairs = data_values.map(data_value => (data_value(1), (data_value(4).toDouble, 1)))
+val Population = keyValuePairs.reduceByKey {
+  case ((pop1, count1), (pop2, count2)) => (pop1 + pop2, count1 + count2)
+}
+val average_Population = Population.mapValues {
+  case (sum, count) => sum / count
+}
+average_Population.collect.foreach(println)

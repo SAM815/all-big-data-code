@@ -1,0 +1,50 @@
+#!/usr/bin/env python
+
+import sys
+
+
+lang_dict = {}
+max_lang_dict = {}
+
+for line in sys.stdin:
+        cont, lang = line.strip().split("\t")
+
+        if cont in lang_dict:
+                lang_dict[cont][lang] = lang_dict[cont].get(lang,0) + 1
+        else:
+                lang_dict[cont] = {lang: 1}
+
+for cont, lang_count in lang_dict.items():
+        max_lang = max(lang_count, key = lang_count.get)
+        max_lang_dict[cont] = max_lang
+
+cont_map = {
+1: 'N.America',
+2: 'S.America',
+3: 'Europe',
+4: 'Africa',
+5: 'Asia',
+6: 'Oceania'
+
+
+}
+
+lang_map = {
+1: 'English',
+2: 'Spanish',
+3: 'French',
+4: 'German',
+5: 'Slavic',
+6: 'other Indo-European',
+7: 'Chinese',
+8: 'Arabic',
+9: 'Japanese/Turkish/Finnish/Magyar',
+10: 'Others'
+
+}
+
+renamed_pairs = {cont_map[int(cont)]:
+lang_map[int(lang)] for cont, lang in max_lang_dict.items()}
+
+for cont, lang in renamed_pairs.items():
+        print('%s\t%s' % (cont, lang))

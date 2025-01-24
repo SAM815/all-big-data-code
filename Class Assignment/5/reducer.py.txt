@@ -1,0 +1,30 @@
+#!/usr/bin/env python
+
+import sys
+
+lang_pop_accumulator = {}
+lang_pop_counter = {}
+	
+for line in sys.stdin:
+	landmass, population, language = line.strip().split("\t")
+	try:
+		population = float(population)
+		
+	except:
+		continue
+	
+	if landmass not in lang_pop_accumulator:
+		lang_pop_accumulator[landmass] = {}
+		lang_pop_counter[landmass] = {}
+		try:
+			lang_pop_accumulator[landmass][language] += population
+			lang_pop_counter[landmass][language] += 1
+		except:
+			lang_pop_accumulator[landmass][language] = population
+			lang_pop_counter[landmass][language] = 1
+			
+for key_landmass in lang_pop_accumulator.keys():
+	for key_language in lang_pop_accumulator[key_landmass].keys():
+		res = lang_pop_accumulator[key_landmass][key_language]/lang_pop_counter[key_landmass][key_language]
+		print('%s\t%s\t%s' % (key_landmass, key_language, res))
+	
